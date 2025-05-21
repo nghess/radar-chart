@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interactive Radar Chart</title>
+  <!-- Include Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Load React and Recharts -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/recharts@2.5.0/umd/Recharts.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+  <div id="root"></div>
+  
+  <script type="text/babel">
+    // Destructure components from Recharts
+    const { 
+      ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, 
+      PolarRadiusAxis, Radar, Legend, Tooltip 
+    } = Recharts;
+
+    // Initial data matching the reference chart
+    const INITIAL_DATA = [
+      {
+        name: 'Elephants',
+        'P-Richness (vision)': 2,
+        'P-Richness (touch)': 5,
+        'E-Richness': 5,
+        'Unity': 5,
+        'Temporality': 4,
+        'Selfhood': 3,
+        color: '#20B2AA' // Light Sea Green (teal)
+      },
+      {
+        name: 'Corvids',
+        'P-Richness (vision)': 5,
+        'P-Richness (touch)': 3,
+        'E-Richness': 4,
+        'Unity': 4,
+        'Temporality': 3,
+        'Selfhood': 2,
+        color: '#FFD700' // Gold (yellow)
+      },
+      {
+        name: 'Cephalopods',
+        'P-Richness (vision)': 4,
+        'P-Richness (touch)': 5,
+        'E-Richness': 3,
+        'Unity': 2,
+        'Temporality': 2,
+        'Selfhood': 3,
+        color: '#FF6347' // Tomato (red-orange)
+      }
+    ];
+
+    // Color palette for new items
+    const COLORS = [
+      '#8884d8', // Purple
+      '#82ca9d', // Green
+      '#ffc658', // Amber
+      '#ff7f0e', // Orange
+      '#d62728', // Red
+      '#1f77b4', // Blue
+      '#e377c2', // Pink
+      '#bcbd22', // Olive
+      '#17becf', // Cyan
+      '#9467bd'  // Violet
+    ];
+
+    // Transform data for proper radar chart display
+    const transformDataForChart = (items, dimensions) => {
+      // Create data points for each dimension
+      return dimensions.map(dimension => {
+        const point = { dimension };
+        // Add each item's value for this dimension
+        items.forEach(item => {
+          point[item.name] = item[dimension];
+        });
+        return point;
+      });
+    };
+
+    const InteractiveRadarChart = () => {
+      const [dataItems, setDataItems] = React.useState(INITIAL_DATA);
+      const [newName, setNewName] = React.useState('');
+      const [dimensions] = React.useState([
+        'P-Richness (vision)',
+        'P-Richness (touch)',
+        'E-Richness',
+        'Unity',
+        'Temporality',
+        'Selfhood'
+      ]);
+      
+      const [newValues, setNewValues] = React.useState({
+        'P-Richness (vision)': 3,
+        'P-Richness (touch)': 3,
+        'E-Richness': 3,
+        'Unity': 3,
+        'Temporality': 3,
+        'Selfhood': 3
+      });
+      
+      // State for editing mode
+      const [editingIndex, setEditingIndex] = React.useState(null);
+      const [editName, setEditName] = React.useState('');
+      const [editValues, setEditValues] = React.useState({});
+      const [editColor, setEditColor] = React.useState('');
+
+      const chartData = transformDataForChart(dataItems, dimensions);
+
+      const handleAddItem = () => {
+        if (!newName.trim()) {
+          alert("Please enter a name for the new item");
+          return;
+        }
+        
+        const colorIndex = dataItems.length % COLORS.length;
+        
+        const newItem = {
+          name: newName,
+          ...newValues,
+          color: COLORS[colorIndex]
+        };
+        
+        setDataItems([...dataItems, newItem]);
+        setNewName('');
+        
+        // Reset values to default
+        const resetValues = {};
+        dimensions.forEach(dim => {
+          resetValues[dim] = 3;
+        });
+        setNewValues(resetValues);
+      };
+
+      const handleValueChange = (dimension, value) => {
+        setNewValues({
+          ...newValues,
+          [dimension]: parseInt(value, 10)
+        });
+      };
+      
+      const handleEditValueChange = (dimension, value) => {
+        setEditValues({
+          ...editValues,
+          [dimension]: parseInt(value, 10)
+        });
+      };
+
+      const handleRemoveItem = (index) => {
+        // If we're currently editing this item, cancel editing
+        if (editingIndex === index) {
+          setEditingIndex(null);
+        }
+        
+        const updatedItems = [...dataItems];
+        updatedItems.splice(index, 1);
+        setDataItems(updatedItems);
+      };
+      
+      const startEditing = (index) => {
+        const item = dataItems[index];
+        setEditingIndex(index);
+        setEditName(item.name);
+        
+        // Copy all dimension values for editing
+        const values = {};
+        dimensions.forEach(dim => {
+          values[dim] = item[dim];
+        });
+        
+        setEditValues(values);
+        setEditColor(item.color);
+      };
+      
+      const cancelEditing = () => {
+        setEditingIndex(null);
+      };
+      
+      const saveEditing = () => {
+        if (editingIndex === null) return;
+        
+        if (!editName.trim()) {
+          alert("Name cannot be empty");
+          return;
+        }
+        
+        const updatedItems = [...dataItems];
+        const itemToUpdate = {...updatedItems[editingIndex]};
+        
+        // Update name
+        itemToUpdate.name = editName;
+        
+        // Update all dimension values
+        dimensions.forEach(dim => {
+          itemToUpdate[dim] = editValues[dim];
+        });
+        
+        // Update color
+        itemToUpdate.color = editColor;
+        
+        updatedItems[editingIndex] = itemToUpdate;
+        setDataItems(updatedItems);
+        setEditingIndex(null);
+      };
+
+      return (
+        <div className="flex flex-col w-full h-full max-w-6xl mx-auto p-4">
+          {/* Chart Container */}
+          <div className="flex-grow w-full" style={{ height: '800px' }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <RadarChart 
+                outerRadius="80%" 
+                data={chartData} 
+                margin={{ top: 70, right: 80, bottom: 110, left: 80 }}
+              >
+                <PolarGrid 
+                  gridType="polygon"
+                />
+                <PolarAngleAxis 
+                  dataKey="dimension" 
+                  tick={{ 
+                    fill: '#000000', 
+                    fontSize: 16,
+                    opacity: 1,
+                  }}
+                  tickLine={false}
+                  orientation="outer"
+                  tickSize={30}
+                  dy={0}
+                />
+                <PolarRadiusAxis 
+                  angle={90} 
+                  domain={[0, 5]} 
+                  tickCount={6}
+                  tick={{ 
+                    fill: '#000000', 
+                    fontSize: 13,
+                    opacity: 0.7
+                  }}
+                  axisLine={false}
+                />
+                
+                {dataItems.map((item) => (
+                  <Radar
+                    key={item.name}
+                    name={item.name}
+                    dataKey={item.name}
+                    stroke={item.color}
+                    fill={item.color}
+                    fillOpacity={0.125}
+                    strokeOpacity={1}
+                    strokeWidth={1}
+                  />
+                ))}
+                
+                <Tooltip />
+                <Legend 
+                  verticalAlign="bottom" 
+                  align="center"
+                  wrapperStyle={{ paddingTop: '60px' }}
+                  iconSize={12}
+                  formatter={(value) => <span style={{ fontSize: '21px' }}>{value}</span>}
+                />
+              </RadarChart>
+            </ResponsiveContainer>
+          </div>
+          
+          {/* Control Panel - Create */}
+          {editingIndex === null && (
+            <div className="mt-2 p-3 border rounded shadow">
+              <input
+                type="text"
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                className="border p-1 w-full"
+                placeholder="Enter name"
+              />
+              
+              <div className="grid grid-cols-3 gap-2 my-2">
+                {dimensions.map((dimension) => (
+                  <div key={dimension} className="mb-1">
+                    <label className="block text-xs">{dimension}:</label>
+                    <div className="flex items-center">
+                      <input
+                        type="range"
+                        min="0"
+                        max="5"
+                        step="1"
+                        value={newValues[dimension]}
+                        onChange={(e) => handleValueChange(dimension, e.target.value)}
+                        className="flex-grow mr-1

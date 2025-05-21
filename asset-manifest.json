@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "/radar-chart/static/css/main.cf890fdb.css",
-    "main.js": "/radar-chart/static/js/main.1d362e0d.js",
+    "main.js": "/radar-chart/static/js/main.7f31079f.js",
     "static/js/453.73ceea9a.chunk.js": "/radar-chart/static/js/453.73ceea9a.chunk.js",
     "index.html": "/radar-chart/index.html",
     "main.cf890fdb.css.map": "/radar-chart/static/css/main.cf890fdb.css.map",
-    "main.1d362e0d.js.map": "/radar-chart/static/js/main.1d362e0d.js.map",
+    "main.7f31079f.js.map": "/radar-chart/static/js/main.7f31079f.js.map",
     "453.73ceea9a.chunk.js.map": "/radar-chart/static/js/453.73ceea9a.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.cf890fdb.css",
-    "static/js/main.1d362e0d.js"
+    "static/js/main.7f31079f.js"
   ]
 }
